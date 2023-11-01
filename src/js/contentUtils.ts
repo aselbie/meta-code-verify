@@ -453,13 +453,23 @@ async function processJSWithSrc(
   }
 }
 
+function getScriptCount(scriptsMap: Map<string, ScriptDetails[]>): number {
+  let count = 0;
+  scriptsMap.forEach(scripts => {
+    count += scripts.length;
+  });
+  return count;
+}
+
 export const processFoundJS = async (version: string): Promise<void> => {
+  let pendingScriptCount = getScriptCount(FOUND_SCRIPTS);
   const scriptsForVersion = FOUND_SCRIPTS.get(version);
   if (!scriptsForVersion) {
     invalidateAndThrow(
       `attempting to process scripts for nonexistent version ${version}`,
     );
   }
+
   const scripts = scriptsForVersion.splice(0).filter(script => {
     if (
       script.otherType === currentFilterType ||
@@ -470,7 +480,7 @@ export const processFoundJS = async (version: string): Promise<void> => {
       scriptsForVersion.push(script);
     }
   });
-  let pendingScriptCount = scripts.length;
+
   for (const script of scripts) {
     if ('src' in script) {
       // ScriptDetailsWithSrc
